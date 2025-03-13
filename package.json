@@ -1,0 +1,17 @@
+{
+  "name": "family-tree-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase": "^11.3.1",
+    "firebase-admin": "^13.1.0",
+    "mongoose": "^8.10.1",
+    "socket.io": "^4.8.1"
+  }
+}
