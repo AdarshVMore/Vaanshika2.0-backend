@@ -1,42 +1,53 @@
 import mongoose from 'mongoose';
 
-const familySchema = new mongoose.Schema({
-  userId: {
+const ChildSchema = new mongoose.Schema({
+  name: {
     type: String,
-    required: true,
-    unique: true,
+    required: [true, 'Name is required'],
+    trim: true
   },
-  member_id: {
+  birthDate: {
+    type: Date
+  },
+  relationship: {
     type: String,
-    required: true,
+    enum: ['son', 'daughter', 'spouse', 'father', 'mother', 'brother', 'sister', 'other'],
+    default: 'other'
   },
-  name: String,
-  attributes: {
-    DOB: Date,
+  notes: {
+    type: String,
+    trim: true
   },
-  children: [{
-    member_id: String,
-    name: String,
-    attributes: {
-      DOB: Date,
-    },
-    children: [{
-      member_id: String,
-      name: String,
-      attributes: {
-        DOB: Date,
-      },
-      children: [{
-        member_id: String,
-        name: String,
-        attributes: {
-          DOB: Date,
-        },
-      }],
-    }],
-  }],
-});
+  profilePicture: {
+    type: String
+  }
+}, { timestamps: true });
 
-const Family = mongoose.model('Family', familySchema, 'families');
+const FamilySchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Family name is required'],
+    trim: true
+  },
+  userId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User',
+    required: true,
+    index: true
+  },
+  children: [ChildSchema],
+  description: {
+    type: String,
+    trim: true
+  },
+  familyPicture: {
+    type: String
+  }
+}, { timestamps: true });
+
+// Create index for faster queries
+FamilySchema.index({ userId: 1 });
+
+const Family = mongoose.model('Family', FamilySchema);
 
 export default Family;

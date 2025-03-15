@@ -1,24 +1,31 @@
 import express from 'express';
-import { addFamily, getFamilyByUserId, updateChild, deleteChild, deleteTree, addChild } from '../controllers/familyController.js';
+import { 
+  addFamily, 
+  getFamilyByUserId, 
+  updateChild, 
+  deleteChild, 
+  deleteTree, 
+  addChild,
+  getFamilyMembers
+} from '../controllers/familyController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Route to add family data
+// Apply protect middleware to all routes
+router.use(protect);
+
+// Family tree routes
 router.post('/', addFamily);
-
-// Route to get family data by user_id
 router.get('/', getFamilyByUserId);
+router.delete('/', deleteTree);
 
-// Route to add a child
-router.post('/addChild', addChild);
+// Child routes
+router.post('/children', addChild);
+router.patch('/children/:childId', updateChild);
+router.delete('/children/:childId', deleteChild);
 
-// Route to delete a family member/child member 
-router.delete('/deleteChild', deleteChild);
-
-// Route to update a family member/child member
-router.patch('/updateChild', updateChild);
-
-// Route to delete a family tree
-router.delete('/deleteTree', deleteTree);
+// Family members route (for sharing, etc.)
+router.get('/members', getFamilyMembers);
 
 export default router;

@@ -1,7 +1,7 @@
 // File: models/ChatRoom.js
 // MongoDB model for chat rooms
 
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const ChatRoomSchema = new mongoose.Schema({
   name: {
@@ -9,6 +9,15 @@ const ChatRoomSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  familyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Family',
+    required: true
+  },
+  members: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   description: {
     type: String,
     default: '',
@@ -19,10 +28,6 @@ const ChatRoomSchema = new mongoose.Schema({
     enum: ['family', 'group', 'direct'],
     default: 'family'
   },
-  participants: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -45,8 +50,9 @@ ChatRoomSchema.pre('save', function(next) {
 });
 
 // Create indexes for better query performance
-ChatRoomSchema.index({ participants: 1 });
+ChatRoomSchema.index({ members: 1 });
+ChatRoomSchema.index({ familyId: 1 });
 ChatRoomSchema.index({ createdAt: -1 });
 ChatRoomSchema.index({ updatedAt: -1 });
 
-module.exports = mongoose.model('ChatRoom', ChatRoomSchema); 
+export default mongoose.model('ChatRoom', ChatRoomSchema); 

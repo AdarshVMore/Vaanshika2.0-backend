@@ -1,38 +1,26 @@
 // File: models/ChatMessage.js
 // MongoDB model for chat messages
 
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const ChatMessageSchema = new mongoose.Schema({
+  sender: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   roomId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ChatRoom',
     required: true
   },
-  senderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  text: {
+  content: {
     type: String,
-    trim: true,
-    default: ''
+    required: true,
+    trim: true
   },
-  image: {
+  attachment: {
     type: String,
-    default: null
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
-  },
-  edited: {
-    type: Boolean,
-    default: false
-  },
-  editedAt: {
-    type: Date,
     default: null
   },
   readBy: [{
@@ -44,11 +32,16 @@ const ChatMessageSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     }
-  }]
+  }],
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 // Create indexes for better query performance
-ChatMessageSchema.index({ roomId: 1, timestamp: -1 });
-ChatMessageSchema.index({ senderId: 1 });
+ChatMessageSchema.index({ roomId: 1, createdAt: -1 });
+ChatMessageSchema.index({ sender: 1 });
 
+export default mongoose.model('ChatMessage', ChatMessageSchema);
  
