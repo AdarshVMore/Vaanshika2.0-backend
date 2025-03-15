@@ -1,4 +1,10 @@
 .env
 ssl/
 node_modules/
-./config/firebaseAdmin.json
+config/firebaseAdmin.json
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+.DS_Store
