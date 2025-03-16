@@ -13,7 +13,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../config/emailService.js";
 
 // JWT secret key - should be in environment variables in production
 const JWT_SECRET = process.env.JWT_SECRET || "vaanshika-jwt-secret-key";
@@ -59,13 +59,38 @@ export const registerUser = async (req, res) => {
     // Save the user to the database
     await newUser.save();
 
+    // Create verification link - use frontend URL for verification
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const verificationLink = `${frontendUrl}/verify-email/${verificationToken}`;
+    
     // Send verification email
-    const verificationLink = `${req.protocol}://${req.get('host')}/api/auth/verify-email/${verificationToken}`;
+    let emailPreviewUrl = null;
+    try {
+      const emailResult = await sendVerificationEmail(newUser, verificationLink);
+      console.log('Verification email sent successfully');
+      
+      // Check if we have a preview URL (from Ethereal)
+      if (emailResult && emailResult.previewUrl) {
+        emailPreviewUrl = emailResult.previewUrl;
+      }
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+      // Continue with registration even if email fails
+    }
 
-    res.status(201).json({
+    // Response object
+    const responseData = {
       message: "User registered successfully. Verification email sent.",
-      verificationLink // Remove this in production
-    });
+      verificationLink, // Remove this in production
+    };
+    
+    // Add preview URL if available (for development/testing)
+    if (emailPreviewUrl) {
+      responseData.emailPreviewUrl = emailPreviewUrl;
+      responseData.note = "Using Ethereal Email for testing. Open the preview URL to view the email.";
+    }
+
+    res.status(201).json(responseData);
   } catch (error) {
     console.error("Register Error:", error);
     
@@ -156,13 +181,38 @@ export const forgotPassword = async (req, res) => {
     user.resetTokenExpiry = resetTokenExpiry;
     await user.save();
 
+    // Create reset link - use frontend URL for reset
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
+    
     // Send reset email
-    const resetLink = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+    let emailPreviewUrl = null;
+    try {
+      const emailResult = await sendPasswordResetEmail(user, resetLink);
+      console.log('Password reset email sent successfully');
+      
+      // Check if we have a preview URL (from Ethereal)
+      if (emailResult && emailResult.previewUrl) {
+        emailPreviewUrl = emailResult.previewUrl;
+      }
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError);
+      // Continue with reset process even if email fails
+    }
 
-    res.status(200).json({ 
+    // Response object
+    const responseData = {
       message: "Password reset email sent",
-      resetLink // Remove this in production
-    });
+      resetLink, // Remove this in production
+    };
+    
+    // Add preview URL if available (for development/testing)
+    if (emailPreviewUrl) {
+      responseData.emailPreviewUrl = emailPreviewUrl;
+      responseData.note = "Using Ethereal Email for testing. Open the preview URL to view the email.";
+    }
+
+    res.status(200).json(responseData);
   } catch (error) {
     console.error("Forgot Password Error:", error.message);
     res.status(500).json({ message: error.message });
@@ -254,8 +304,18 @@ export const resendVerificationEmail = async (req, res) => {
     user.verificationTokenExpiry = tokenExpiry;
     await user.save();
 
+    // Create verification link - use frontend URL for verification
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const verificationLink = `${frontendUrl}/verify-email/${verificationToken}`;
+    
     // Send verification email
-    const verificationLink = `${req.protocol}://${req.get('host')}/api/auth/verify-email/${verificationToken}`;
+    try {
+      await sendVerificationEmail(user, verificationLink);
+      console.log('Verification email resent successfully');
+    } catch (emailError) {
+      console.error('Failed to resend verification email:', emailError);
+      return res.status(500).json({ message: "Failed to send verification email" });
+    }
 
     res.status(200).json({ 
       message: "Verification email resent",
